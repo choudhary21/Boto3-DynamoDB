@@ -6,6 +6,7 @@ from .dynamoDB_module import dynamoDB
 
 
 app = Flask(__name__)
+
 logging.basicConfig(filename='app.log', filemode='a', level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
