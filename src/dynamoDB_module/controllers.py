@@ -18,7 +18,7 @@ def update_PITR():
             region_name = REGION
             )
         current_app.logger.info("Sending request to enable PITR")
-        
+
         response = client.update_continuous_backups(
             TableName = table,
             PointInTimeRecoverySpecification={
@@ -29,8 +29,8 @@ def update_PITR():
         current_app.logger.info("Sending successful response after enabling the PITR")
         return jsonify({"message" : PITR_ENABALED}), HTTPStatus.OK
 
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+        
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
-
-    except KeyError as missing:
-        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, 
