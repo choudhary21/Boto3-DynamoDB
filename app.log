@@ -1,14 +1,3 @@
-2023-01-16 11:44:11,631 INFO werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:6000
-2023-01-16 11:44:11,632 INFO werkzeug: [33mPress CTRL+C to quit[0m
-2023-01-16 11:44:11,632 INFO werkzeug:  * Restarting with stat
-2023-01-16 11:44:11,834 WARNING werkzeug:  * Debugger is active!
-2023-01-16 11:44:11,834 INFO werkzeug:  * Debugger PIN: 467-866-636
-2023-01-16 11:45:36,777 WARNING werkzeug:  * Debugger is active!
-2023-01-16 11:45:36,778 INFO werkzeug:  * Debugger PIN: 467-866-636
-2023-01-16 11:45:39,834 INFO werkzeug: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on http://127.0.0.1:6000
-2023-01-16 11:45:39,834 INFO werkzeug: [33mPress CTRL+C to quit[0m
-2023-01-16 11:45:39,835 INFO werkzeug:  * Restarting with stat
-2023-01-16 11:45:40,022 WARNING werkzeug:  * Debugger is active!
-2023-01-16 11:45:40,022 INFO werkzeug:  * Debugger PIN: 467-866-636
+2023-01-16 15:36:33,022 INFO src: Creating client instance for DynamoDB
+2023-01-16 15:36:33,101 INFO src: Sending request to enable PITR
+2023-01-16 15:36:34,299 INFO src: Sending successful response after enabling the PITR
