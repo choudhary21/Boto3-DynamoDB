@@ -5,6 +5,10 @@ name = "pypi"
 
 [packages]
 flask = "*"
+flask-sqlalchemy = "*"
+requests = "*"
+pymysql = "*"
+boto3 = "*"
 
 [dev-packages]
 
