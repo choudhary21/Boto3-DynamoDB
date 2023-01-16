@@ -18,6 +18,7 @@ def update_PITR():
             region_name = REGION
             )
         current_app.logger.info("Sending request to enable PITR")
+        
         response = client.update_continuous_backups(
             TableName = table,
             PointInTimeRecoverySpecification={
