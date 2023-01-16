@@ -10,7 +10,7 @@ from flask import current_app
 def update_PITR():
     try:
         table = request.get_json()['table']
-        current_app.logger.info("Creating client instance for DynamoDB")
+        current_app.logger.info("Creating client instance for updatinf PITR")
         client = boto3.client(
             'dynamodb', 
             aws_access_key_id = ACCESS_KEY, 
@@ -31,6 +31,33 @@ def update_PITR():
 
     except KeyError as missing:
         return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
-        
+
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+
+def exportToS3():
+    try:
+        arn = request.get_json()["TableArn"]
+        bucket = request.get_json()["S3Bucket"]
+        current_app.logger.info("Creating client instance for exporting to s3")
+        client = boto3.client(
+            'dynamodb', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+
+        response = client.export_table_to_point_in_time(
+            TableArn = arn,
+            S3Bucket = bucket,
+            ExportFormat="DYNAMODB_JSON"
+        )
+
+        return response
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
