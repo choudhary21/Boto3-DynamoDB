@@ -1,3 +1,8 @@
 2023-01-16 15:36:33,022 INFO src: Creating client instance for DynamoDB
 2023-01-16 15:36:33,101 INFO src: Sending request to enable PITR
 2023-01-16 15:36:34,299 INFO src: Sending successful response after enabling the PITR
+2023-01-16 15:49:58,588 INFO src: Creating client instance for DynamoDB
+2023-01-16 15:49:58,678 INFO src: Sending request to enable PITR
+2023-01-16 15:52:23,081 INFO src: Creating client instance for DynamoDB
+2023-01-16 15:52:23,086 INFO src: Sending request to enable PITR
+2023-01-16 15:52:24,062 INFO src: Sending successful response after enabling the PITR
