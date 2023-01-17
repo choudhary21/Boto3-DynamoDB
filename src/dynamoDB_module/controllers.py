@@ -61,3 +61,26 @@ def exportToS3():
 
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+def listTables():
+    try:
+        tableName = request.get_json()["TableName"]
+        limit = request.get_json()["Limit"]
+        current_app.logger.info("Creating client instance for listing all tables")
+        client = boto3.client(
+            'dynamodb', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+
+        response = client.list_tables(ExclusiveStartTableName = tableName, Limit = limit )  
+        
+            
+        return jsonify(response["TableNames"]), HTTPStatus.OK
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
