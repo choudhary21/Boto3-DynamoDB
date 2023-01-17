@@ -9,3 +9,6 @@ dynamoDB.add_url_rule('/PITR', 'update_PITR', update_PITR, methods = ['PATCH'])
 
 # route for exporting table to s3
 dynamoDB.add_url_rule('/export', 'exportToS3', exportToS3, methods = ['PATCH'])
+
+# route for listing all exported files
+dynamoDB.add_url_rule('/listexports', 'listExports', listExports)
