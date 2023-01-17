@@ -1,6 +1,5 @@
 from flask import Flask
 import logging
-from src.config import *
 from .dynamoDB_module import dynamoDB
 
 
