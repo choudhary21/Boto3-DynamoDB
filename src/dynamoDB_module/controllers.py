@@ -35,7 +35,7 @@ def update_PITR():
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
 
-
+# function to export tables to S3
 def exportToS3():
     try:
         arn = request.get_json()["TableArn"]
@@ -54,10 +54,35 @@ def exportToS3():
             ExportFormat="DYNAMODB_JSON"
         )
 
-        return response
+        return jsonify({"message" : TABLE_EXPORTED}), HTTPStatus.OK
 
     except KeyError as missing:
         return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
 
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+
+# Function for listing all the exports
+def listExports():
+    try:
+        arn = request.get_json()["TableArn"]
+        maxRes = request.get_json()["Max"]
+        current_app.logger.info("Creating client instance for listing all exported files")
+        client = boto3.client(
+            'dynamodb', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+        response = client.list_exports(
+            TableArn = arn,
+            MaxResults = maxRes
+        )
+        return jsonify(response), HTTPStatus.OK
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+        
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
