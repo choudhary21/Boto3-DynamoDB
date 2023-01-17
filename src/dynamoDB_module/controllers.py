@@ -53,7 +53,7 @@ def exportToS3():
             S3Bucket = bucket,
             ExportFormat="DYNAMODB_JSON"
         )
-
+        current_app.logger.info("Sending successful response after exporting table")
         return jsonify({"message" : TABLE_EXPORTED}), HTTPStatus.OK
 
     except KeyError as missing:
