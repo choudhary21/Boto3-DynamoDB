@@ -4,6 +4,7 @@ from http import HTTPStatus
 import boto3
 from .constants import *
 from flask import current_app
+import time
 
 
 # function for enabling the PITR for a table of DynamoDB
@@ -53,7 +54,7 @@ def exportToS3():
             S3Bucket = bucket,
             ExportFormat="DYNAMODB_JSON"
         )
-        current_app.logger.info("Sending successful response after exporting table")
+
         return jsonify({"message" : TABLE_EXPORTED}), HTTPStatus.OK
 
     except KeyError as missing:
@@ -84,5 +85,51 @@ def listExports():
     except KeyError as missing:
         return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
         
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+# Function for listing all tables of DynamoDB
+def listTables():
+    try:
+        # tableName = request.get_json()["TableName"]
+        limit = request.get_json()["Limit"]
+        current_app.logger.info("Creating client instance for listing all tables")
+        client = boto3.client(
+            'dynamodb', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+
+        tableResponse = client.list_tables(Limit = limit )  
+        
+            
+        return jsonify(tableResponse), HTTPStatus.OK
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+# Function for pushing messages in SQS queue
+def pushMessages():
+    try:
+        url = request.get_json()["queueUrl"]
+        message = request.get_json()["MessageBody"]
+        current_app.logger.info("Creating client instance for sending messages to SQS queur")
+        client = boto3.client(
+            'sqs', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+        )
+        response = client.send_message(
+            QueueUrl=url,
+            MessageBody=message
+        )
+        print(response)
+        return jsonify({"message" : MESSAGE_PUSHED}), HTTPStatus.OK
+
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
