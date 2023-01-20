@@ -37,6 +37,7 @@ def update_PITR():
 
 
 def exportToS3():
+    status = False
     try:
         arn = request.get_json()["TableArn"]
         bucket = request.get_json()["S3Bucket"]
@@ -74,8 +75,8 @@ def listTables():
             region_name = REGION
             )
 
-        response = client.list_tables(ExclusiveStartTableName = tableName, Limit = limit )  
-        
+        response = client.list_tables(ExclusiveStartTableName = tableName, Limit = limit)  
+        # ExclusiveStartTableName = tableName, Limit = limit
             
         return jsonify(response["TableNames"]), HTTPStatus.OK
 
@@ -84,3 +85,53 @@ def listTables():
 
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+def sendSQS():
+    try:
+        queueURL = request.get_json()["QueueUrl"]
+        messageBody = request.get_json()["MessageBody"]
+        # actualMessage = {"message" : messageBody}
+        current_app.logger.info("Creating client to push message on SQS for table")
+        client = boto3.client(
+            'sqs', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+
+        response = client.send_message(
+            QueueUrl=queueURL,
+            MessageBody=json.dumps(messageBody)
+        )
+
+        return response
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+def recieveSQS():
+    try:
+        queueURL = request.get_json()["QueueUrl"]
+        client = boto3.client(
+            'sqs', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+            )
+
+        response = client.receive_message(
+            QueueUrl=queueURL,
+            MaxNumberOfMessages=10,
+            WaitTimeSeconds=3
+        )
+        return response
+
+    except KeyError as missing:
+        return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
+
+    except Exception as err:
+        return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+        
