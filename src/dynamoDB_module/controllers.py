@@ -101,10 +101,22 @@ def listTables():
             region_name = REGION
             )
 
-        tableResponse = client.list_tables(Limit = limit )  
+        tableResponse = client.list_tables(Limit = limit)
+
+        sqsClient =  boto3.client(
+            'sqs', 
+            aws_access_key_id = ACCESS_KEY, 
+            aws_secret_access_key = SECRET_KEY, 
+            region_name = REGION
+        ) 
         
+        for table in tableResponse["TableNames"]:
+            sqsResponse = sqsClient.send_message(
+                QueueUrl = "",
+                MessageBody = table
+            )
             
-        return jsonify(tableResponse), HTTPStatus.OK
+        return jsonify(tableResponse["TableNames"]), HTTPStatus.OK
 
     except KeyError as missing:
         return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
@@ -128,8 +140,9 @@ def pushMessages():
             QueueUrl=url,
             MessageBody=message
         )
-        print(response)
-        return jsonify({"message" : MESSAGE_PUSHED}), HTTPStatus.OK
+        # print(response)
+        return response
+        # return jsonify({"message" : MESSAGE_PUSHED}), HTTPStatus.OK
 
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
