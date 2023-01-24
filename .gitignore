@@ -2,6 +2,7 @@
 Pipfile.lock
 *.log
 bootstrap.sh
+app.log
 
 
 # Byte-compiled / optimized / DLL files
