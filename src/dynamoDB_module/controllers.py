@@ -18,6 +18,15 @@ def update_PITR():
             aws_secret_access_key = SECRET_KEY, 
             region_name = REGION
             )
+
+        # Checking if PITR is already enabled
+        pitr_response = client.describe_continuous_backups(
+            TableName= table
+            )
+        isEnabled = pitr_response["ContinuousBackupsDescription"]["PointInTimeRecoveryDescription"]["PointInTimeRecoveryStatus"]
+        if isEnabled == "ENABLED":
+            return jsonify({"message" : PITR_ALREADY_ENABALED}), HTTPStatus.OK
+        # print("pitr: ", pitr_response["ContinuousBackupsDescription"]["PointInTimeRecoveryDescription"]["PointInTimeRecoveryStatus"])
         current_app.logger.info("Sending request to enable PITR")
 
         response = client.update_continuous_backups(
@@ -66,21 +75,27 @@ def exportToS3():
 
 # Function for listing all the exports
 def listExports():
+    data = []
     try:
-        arn = request.get_json()["TableArn"]
-        maxRes = request.get_json()["Max"]
+        bucket = request.get_json()["bucket"]
+        # maxRes = request.get_json()["Max"]
         current_app.logger.info("Creating client instance for listing all exported files")
-        client = boto3.client(
-            'dynamodb', 
+        client = boto3.resource(
+            's3', 
             aws_access_key_id = ACCESS_KEY, 
-            aws_secret_access_key = SECRET_KEY, 
+            aws_secret_access_key = SECRET_KEY,
             region_name = REGION
             )
-        response = client.list_exports(
-            TableArn = arn,
-            MaxResults = maxRes
-        )
-        return jsonify(response), HTTPStatus.OK
+        response = client.Bucket(bucket)
+        summaries = response.objects.all()
+        print("files", summaries)
+        if summaries == None: # condition if we get none response
+            raise Exception(NONE_VALUE)
+        for files in summaries:
+            # print("data: ", files)
+            if(files.key[-5:] == ".json"):
+                data.append(files.key)
+        return jsonify(data), HTTPStatus.OK
 
     except KeyError as missing:
         return {"error" : {"message" : FAILED_VALIDATION, "parameter" : str(missing)}}, HTTPStatus.BAD_REQUEST
@@ -112,7 +127,7 @@ def listTables():
         
         for table in tableResponse["TableNames"]:
             sqsResponse = sqsClient.send_message(
-                QueueUrl = "",
+                QueueUrl = "arn:aws:sqs:us-east-1:300023816116:test",
                 MessageBody = table
             )
             
@@ -146,3 +161,13 @@ def pushMessages():
 
     except Exception as err:
         return jsonify({"error": str(err)}), HTTPStatus.BAD_REQUEST
+
+
+# bucket = "my-demo1"
+# client = boto3.client('dynamodb')
+# response = client.export_table_to_point_in_time(
+#             TableArn = 
+#             f"arn:aws:dynamodb:us-east-1:300023816116:table/{table_name_from_event}",
+#             S3Bucket = bucket,
+#             ExportFormat="DYNAMODB_JSON"
+#         )
