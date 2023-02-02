@@ -1,10 +1,17 @@
 from flask import Flask
 import logging
 from .dynamoDB_module import dynamoDB
+from .extensions import db
 
 
+app=Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://kedar:Kedar123@localhost/DynamoDB"
+db.init_app(app)
 
-app = Flask(__name__)
+with app.app_context():
+    from .dynamoDB_module.models import *
+    
+    db.create_all()
 
 logging.basicConfig(filename='app.log', filemode='a', level=logging.INFO,
                     format="%(asctime)s %(levelname)s %(name)s: %(message)s")
