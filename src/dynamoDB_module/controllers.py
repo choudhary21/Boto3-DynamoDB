@@ -106,30 +106,31 @@ def listExports():
 # Function for listing all tables of DynamoDB
 def listTables():
     try:
-        # tableName = request.get_json()["TableName"]
-        limit = request.get_json()["Limit"]
+        queueName = request.get_json()["QueueName"]
         current_app.logger.info("Creating client instance for listing all tables")
         client = boto3.client(
-            'dynamodb', 
-            aws_access_key_id = ACCESS_KEY, 
-            aws_secret_access_key = SECRET_KEY, 
+            'dynamodb',
+            aws_access_key_id = ACCESS_KEY,
+            aws_secret_access_key = SECRET_KEY,
             region_name = REGION
             )
-
-        tableResponse = client.list_tables(Limit = limit)
-
-        sqsClient =  boto3.client(
-            'sqs', 
-            aws_access_key_id = ACCESS_KEY, 
-            aws_secret_access_key = SECRET_KEY, 
-            region_name = REGION
-        ) 
-        
+        tableResponse = client.list_tables()
+        # ExclusiveStartTableName = tableName, Limit = limit                
+        # creating sqs client
+        sqsClient = boto3.client(
+                'sqs',
+                aws_access_key_id = ACCESS_KEY,
+                aws_secret_access_key = SECRET_KEY,
+                region_name = REGION
+                )
+        # fetching details for table
+        queueName = sqsClient.get_queue_url(QueueName=queueName)
+        queueURL = queueName["QueueUrl"]
         for table in tableResponse["TableNames"]:
             sqsResponse = sqsClient.send_message(
-                QueueUrl = "arn:aws:sqs:us-east-1:300023816116:test",
+                QueueUrl = queueURL,
                 MessageBody = table
-            )
+                )
             
         return jsonify(tableResponse["TableNames"]), HTTPStatus.OK
 
@@ -171,3 +172,18 @@ def pushMessages():
 #             S3Bucket = bucket,
 #             ExportFormat="DYNAMODB_JSON"
 #         )
+
+
+# {'Records': 
+# [
+#     {'messageId': '35adc39f-b47a-406d-ac0e-0b7f89c83fb9', 
+#     'receiptHandle': 'AQEBK6vqH/7kz/Ls4Vf/snUS9O1hqa5od/QB25OYR3tMn/GwHBv3luMW16Dywyp8AHUdqcTJgTWEpF/zf+WSBB0e4w7pcWGMMt85NzmYdD2286Rn174gejjCTczm0NkJb3cLdVVuxlrakGvRsknuendvmjQbtmNeOS3cUyh1K1pJUbVbC5e5hOkLUSKLf+OsV50NwBGcXjtiV2azru9ufBpOndAfIUOi8CU5SMRWnGFBkitSycJZTEIx7TH2jhYPDclFX0+6q5mgtRwN5Xlhuk7yRBE+ZsYqc/qzbg5Q0nLbxyquwoyyZr6qVYkdsglflaILq12u/vXhX8fdxJddj/NievoFz+p68DTzj3BPEj5wLPSIE8PcgU+3QpCqn1x74s3K', 
+#     'body': 'Music', 
+#     'attributes': {'ApproximateReceiveCount': '20', 'SentTimestamp': '1675145126274', 'SenderId': 'AIDAULWWQD62AL5X6TWXQ', 'ApproximateFirstReceiveTimestamp': '1675145126274'}, 
+#     'messageAttributes': {}, 
+#     'md5OfBody': '47dcbd834e669233d7eb8a51456ed217', 
+#     'eventSource': 'aws:sqs', 
+#     'eventSourceARN': 'arn:aws:sqs:us-east-1:300023816116:test', 
+#     'awsRegion': 'us-east-1'}
+#     ]
+#     }
