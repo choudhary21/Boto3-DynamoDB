@@ -12,8 +12,3 @@ def validate_bucket(bucket):
         raise Exception("bucket name must be string")
     elif len(bucket) < 3:
         raise Exception("bucket must have length greater than or equal to 3")
-
-# # Input validation for Maximum results
-# def validate_maxRes(maxRes):
-#     if not isinstance(maxRes, int):
-#         raise Exception("Maximum results must be integer")
