@@ -3,10 +3,12 @@ import logging
 from src.config import *
 from .dynamoDB_module import dynamoDB
 from .extensions import db
+from flask_cors import CORS
 
 
 
 app = Flask(__name__)
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://abhishek:Opcito123@localhost/boto3_DynamoDB"
 db.init_app(app)
 
