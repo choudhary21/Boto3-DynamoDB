@@ -1,15 +1,16 @@
-x = {'Records': 
-[
-    {'messageId': '35adc39f-b47a-406d-ac0e-0b7f89c83fb9', 
-    'receiptHandle': 'AQEBK6vqH/7kz/Ls4Vf/snUS9O1hqa5od/QB25OYR3tMn/GwHBv3luMW16Dywyp8AHUdqcTJgTWEpF/zf+WSBB0e4w7pcWGMMt85NzmYdD2286Rn174gejjCTczm0NkJb3cLdVVuxlrakGvRsknuendvmjQbtmNeOS3cUyh1K1pJUbVbC5e5hOkLUSKLf+OsV50NwBGcXjtiV2azru9ufBpOndAfIUOi8CU5SMRWnGFBkitSycJZTEIx7TH2jhYPDclFX0+6q5mgtRwN5Xlhuk7yRBE+ZsYqc/qzbg5Q0nLbxyquwoyyZr6qVYkdsglflaILq12u/vXhX8fdxJddj/NievoFz+p68DTzj3BPEj5wLPSIE8PcgU+3QpCqn1x74s3K', 
-    'body': 'Music', 
-    'attributes': {'ApproximateReceiveCount': '20', 'SentTimestamp': '1675145126274', 'SenderId': 'AIDAULWWQD62AL5X6TWXQ', 'ApproximateFirstReceiveTimestamp': '1675145126274'}, 
-    'messageAttributes': {}, 
-    'md5OfBody': '47dcbd834e669233d7eb8a51456ed217', 
-    'eventSource': 'aws:sqs', 
-    'eventSourceARN': 'arn:aws:sqs:us-east-1:300023816116:test', 
-    'awsRegion': 'us-east-1'}
-    ]
-    }
-
-print("x: ", x['Records'][0]['body'])
+x = {
+    'ExportDescription': {
+        'ExportArn': 'arn:aws:dynamodb:us-east-1:300023816116:table/Movie/export/01676272664573-40cd9314', 
+        'ExportStatus': 'IN_PROGRESS', 
+        'StartTime': datetime.datetime(2023, 2, 13, 12, 47, 44, 573000, tzinfo=tzlocal()), 
+        'TableArn': 'arn:aws:dynamodb:us-east-1:300023816116:table/Movie', 
+        'TableId': '9a958dc7-9d06-49bf-99b8-feb8131a1e05', 
+        'ExportTime': datetime.datetime(2023, 2, 13, 12, 47, 44, 573000, tzinfo=tzlocal()), 
+        'ClientToken': '4df22066-61de-4ebf-9fc6-f67008635e1c', 
+        'S3Bucket': 'my-demo1', 
+        'S3SseAlgorithm': 'AES256', 
+        'ExportFormat': 'DYNAMODB_JSON'
+        }, 
+        'ResponseMetadata': {
+            'RequestId': 'D6J5NPDLHQUMG7FDQK2C337E97VV4KQNSO5AEMVJF66Q9ASUAAJG', 
+            'HTTPStatusCode': 200, 'HTTPHeaders': {'server': 'Server', 'date': 'Mon, 13 Feb 2023 07:17:44 GMT', 'content-type': 'application/x-amz-json-1.0', 'content-length': '454', 'connection': 'keep-alive', 'x-amzn-requestid': 'D6J5NPDLHQUMG7FDQK2C337E97VV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '2378809179'}, 'RetryAttempts': 0}}
