@@ -12,3 +12,7 @@ def validate_bucket(bucket):
         raise Exception("bucket name must be string")
     elif len(bucket) < 3:
         raise Exception("bucket must have length greater than or equal to 3")
+
+def validate_PITR(pitr):
+    if not isinstance(pitr, bool):
+        raise Exception("pitr value should be Bool")
