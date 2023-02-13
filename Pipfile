@@ -9,6 +9,7 @@ flask-sqlalchemy = "*"
 requests = "*"
 pymysql = "*"
 boto3 = "*"
+flask-cors = "*"
 
 [dev-packages]
 
