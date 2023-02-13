@@ -1,5 +1,13 @@
 from src.extensions import db
 
+class UpdatePITR(db.Model):
+    _id = db.Column(db.Integer, primary_key = True)
+    tableName = db.Column(db.String(50))
+    pitr_status= db.Column(db.String(10))
+    def __init__(self, tableName, pitr_status):
+        self.tableName = tableName
+        self.pitr_status = pitr_status
+
 class ExportToS3(db.Model):
     _id = db.Column(db.Integer, primary_key = True)
     TableName = db.Column(db.String(50))
