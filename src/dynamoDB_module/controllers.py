@@ -9,7 +9,7 @@ from .service import *
 from src.utils import create_client
 from .models import *
 from src.extensions import db
-from src.utils import create_client, create_resource
+from src.utils import *
 
 
 # function for enabling the PITR for a table of DynamoDB
@@ -51,22 +51,24 @@ def update_PITR():
         # cheking the response
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             # updating the DB and cheking if table exist or not
-            tableExist = UpdatePITR.query.filter(UpdatePITR.tableName == table).first()
-            if tableExist:
-                tableExist.pitr_status = response['ContinuousBackupsDescription']['PointInTimeRecoveryDescription']['PointInTimeRecoveryStatus']
+            tableDatails = ListTables.query.filter_by(Table = table).first()
+            if tableDatails:
+                tableDatails.pitr_status = pitr_status
                 db.session.commit()
-            else:
-                update_pitr = UpdatePITR(table,
-                response['ContinuousBackupsDescription']['PointInTimeRecoveryDescription']['PointInTimeRecoveryStatus']
-                )
-                db.session.add(update_pitr)
-                db.session.commit()
-            current_app.logger.info("Sending successful response after enabling the PITR")
+            # if tableExist:
+            #     tableExist.pitr_status = response['ContinuousBackupsDescription']['PointInTimeRecoveryDescription']['PointInTimeRecoveryStatus']
+            #     db.session.commit()
+            # else:
+            #     update_pitr = UpdatePITR(table,
+            #     response['ContinuousBackupsDescription']['PointInTimeRecoveryDescription']['PointInTimeRecoveryStatus']
+            #     )
+            #     db.session.add(update_pitr)
+            #     db.session.commit()
+            # current_app.logger.info("Sending successful response after enabling the PITR")
             # cheking if pitr disabled or enabled
-            if pitr_status == True:
-                return jsonify({"message" : PITR_ENABALED}), HTTPStatus.OK
-            else:
-                return jsonify({"message" : PITR_DISABLED}), HTTPStatus.OK
+            Message = PITR_ENABALED if pitr_status else PITR_DISABLED
+
+            return jsonify({"message" : Message}), HTTPStatus.OK
         else:
             raise Exception(SOMETHING_WENT_WRONG)
 
@@ -85,23 +87,36 @@ def exportToS3():
         validate_bucket(bucket) # validating bucket
         current_app.logger.info("Creating client instance for exporting to s3")
         client = create_client('dynamodb')
+        current_app.logger.info("Checking if the Point-in-time-recovery is enabled or not")
+        # Checking if the Point-in-time-recovery is enabled or not
+        table_pitr = client.describe_continuous_backups(
+            TableName= tableName
+            )
+        table_pitr_status = table_pitr["ContinuousBackupsDescription"]["PointInTimeRecoveryDescription"]["PointInTimeRecoveryStatus"]
+        if table_pitr_status == "DISABLED":
+            return successful_output(ENABLE_PITR), HTTPStatus.OK
 
         tableDetails = client.describe_table(
             TableName=tableName
             )
+        print("tableDetails: ", tableDetails)
         table_arn = tableDetails['Table']['TableArn']
 
         response = client.export_table_to_point_in_time(
             TableArn = table_arn,
             S3Bucket = bucket,
-            ExportFormat="DYNAMODB_JSON"
+            ExportFormat="DYNAMODB_JSON",
+            S3Prefix = tableName
             )
         # print("res: ", response)
         # checking response
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-            isExist = ExportToS3.query.filter(ExportToS3.TableName == tableName, ExportToS3.S3Bucket == bucket).first()
+            tableId = get_table_id(tableName)
+            isExist = ExportToS3.query.filter(ExportToS3.TableId == tableId, ExportToS3.S3Bucket == bucket).first()
             if not isExist:
-                exporttoS3 = ExportToS3(tableName, bucket, response["ExportDescription"]["ExportTime"])
+                folder = response["ExportDescription"]["ExportArn"][-23:]
+                locationString = f"s3://{bucket}/{tableName}/AWSDynamoDB/{folder}/data/"
+                exporttoS3 = ExportToS3(tableId, bucket, locationString)
                 db.session.add(exporttoS3)
                 db.session.commit()
             return jsonify({"message" : TABLE_EXPORTED}), HTTPStatus.OK
@@ -121,6 +136,7 @@ def listExports():
     data = []
     try:
         bucket = request.get_json()["bucket"]
+        table = request.get_json()["table"]
         current_app.logger.info("Creating client instance for listing all exported files")
         client = create_resource('s3')
         response = client.Bucket(bucket)
@@ -130,13 +146,16 @@ def listExports():
             raise Exception(NONE_VALUE)
         for files in summaries:
             # print("data: ", files)
-            if(files.key[-5:] == ".json"):
-                data.append(files.key)
-                jsonFile = ListExports.query.filter_by(JsonFile=files.key).all()
-                if not jsonFile:
-                    exportedFiles = ListExports(files.key, bucket)
-                    db.session.add(exportedFiles)
-                    db.session.commit()
+            if(files.key[-3:] == ".gz"):
+                if table in files.key:
+                    data.append(files.key)
+                    jsonFile = ListExports.query.filter_by(JsonFile=files.key).all()
+                    if not jsonFile:
+                        exportedFiles = ListExports(files.key, bucket)
+                        db.session.add(exportedFiles)
+                        db.session.commit()
+                else:
+                    data.append(files.key)
 
         return jsonify(data), HTTPStatus.OK
 
@@ -149,23 +168,29 @@ def listExports():
 # Function for listing all tables of DynamoDB
 def listTables():
     try:
-        # queueName = request.get_json()["QueueName"]
         current_app.logger.info("Creating client instance for listing all tables")
         client = create_client('dynamodb')
         tableResponse = client.list_tables()
+        for table in tableResponse["TableNames"]:
+            isExist = ListTables.query.filter_by(Table = table).first()
+            if not isExist:
+                listTables = ListTables(table)
+                db.session.add(listTables)
+                db.session.commit()
         # ExclusiveStartTableName = tableName, Limit = limit                
         # creating sqs client
         # sqsClient = create_client('sqs')
         # # fetching details for table
-        # queueName = sqsClient.get_queue_url(QueueName=queueName)
+        # queueName = sqsClient.get_queue_url(QueueName="test")
         # queueURL = queueName["QueueUrl"]
+        # # sending each table as message to the queue 
         # for table in tableResponse["TableNames"]:
         #     sqsResponse = sqsClient.send_message(
         #         QueueUrl = queueURL,
         #         MessageBody = table
         #         )
         #     # cheking if list of tables is updated or not
-        #     Tables = ListTables.query.filter_by(tableName=table).all()
+        #     Tables = ListTables.query.filter_by(Table=table).all()
         #     if not Tables:
         #         listTables = ListTables(table)
         #         db.session.add(listTables)
