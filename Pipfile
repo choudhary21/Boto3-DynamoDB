@@ -10,6 +10,9 @@ requests = "*"
 pymysql = "*"
 boto3 = "*"
 flask-cors = "*"
+python-dotenv = "*"
+cryptography = "*"
+pytest = "*"
 
 [dev-packages]
 
